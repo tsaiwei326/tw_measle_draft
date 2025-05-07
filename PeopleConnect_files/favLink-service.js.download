@@ -1,0 +1,57 @@
+peopleconnectApp.factory('FavLinksService', ['$q', '$rootScope', 'FavLinksApi', function ($q, $rootScope, FavLinksApi) {
+    var _favLinksService = {}
+    var root = $rootScope;
+
+    _favLinksService.addfavLinks = function (body, params) {
+        var defer = $q.defer();
+
+        FavLinksApi.POST_addfavLinks(body, params).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+
+    _favLinksService.getfavLinks = function (params) {
+        var defer = $q.defer();
+
+        FavLinksApi.GET_getfavLinks(params).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+
+    _favLinksService.deletefavLinks = function (params) {
+        var defer = $q.defer();
+
+        FavLinksApi.POST_deletefavLinks(params).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+
+    _favLinksService.swapfavLinks = function (data, params) {
+        var defer = $q.defer();
+
+        FavLinksApi.POST_swapfavLinks(data, params).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+    
+    return _favLinksService;
+}]);

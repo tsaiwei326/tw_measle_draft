@@ -1,0 +1,79 @@
+﻿peopleconnectApp.factory('NewsApi', ['$window', '$rootScope', '$http',
+    function (win, $rootScope, $http) {
+        var _api = {},
+            root = "/webdataapi/dashboard/";
+
+        /* Available Endpoints */
+        var routes = {
+            getNewsFeed: "GetNews",
+            getNewsTopics: "GetNewsTopics",
+            getNewsCategories: "GetNewsCategories",
+            getAppliedFilters: "GetAppliedNewsFilters",
+            updateAppliedFilters: "UpdateNewsFilters"
+        }
+
+        /*
+        * Get News Feed
+        */
+        _api.GET_feed = function (params) {
+            return $http({
+                method: 'GET',
+                url: root + routes.getNewsFeed,
+                params : params,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+
+        /*
+        * Get News Feed
+        */
+        _api.GET_categories = function () {
+            return $http({
+                method: 'GET',
+                url: root + routes.getNewsCategories,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+
+        /*
+        * Get News Feed
+        */
+        _api.GET_topics = function () {
+            return $http({
+                method: 'GET',
+                url: root + routes.getNewsTopics,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+
+        /*
+        * Get News Feed
+        */
+        _api.GET_myfilters = function (params) {
+            return $http({
+                method: 'GET',
+                url: root + routes.getAppliedFilters,
+                params : params,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+
+        
+        /*
+        * Save tools to a users profile
+        */
+        
+        _api.POST_saveFilters = function (params, filters) {
+            jsonData = JSON.stringify(filters);
+
+            return $http({
+                method: 'POST',
+                url: root + routes.updateAppliedFilters,
+                params: params,
+                data: jsonData,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+
+        return _api;
+    }]);

@@ -1,0 +1,17 @@
+peopleconnectApp.factory('AuthService', ['$q', '$rootScope', function ($q, $rootScope) {
+    var _authService = {}
+    var root = $rootScope;
+
+    root._loggedInUserId = [];
+    
+    _authService.getAllTools = function () {
+        var defer = $q.defer();
+
+        console.log('user id checked');
+        defer.resolve('hit');
+
+        return defer.promise;
+    }
+
+    return _toolService;
+}]);

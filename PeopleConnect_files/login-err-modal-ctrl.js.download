@@ -1,0 +1,17 @@
+var loginErrController = angular.module('loginErrController', ['ui.bootstrap']);
+loginErrController.controller('loginErrCtrl', function ($scope, $uibModalInstance, ToolsService) {
+	var $ctrl = this;
+	var self = $scope;
+
+	$ctrl.isLoading = true;
+	$ctrl.selectedTools = {};
+	$ctrl.tools = [];
+	$ctrl.toolCategories = [];
+
+
+
+
+	$ctrl.cancel = function () {
+		$uibModalInstance.dismiss(false);
+	};
+});

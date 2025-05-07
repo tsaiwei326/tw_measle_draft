@@ -1,0 +1,72 @@
+peopleconnectApp.factory('RssApi', ['$window', '$rootScope', '$http',
+    function (win, $rootScope, $http) {
+        var _api = {},
+            root = "/webdataapi/dashboard/";
+
+        /* Available Endpoints */
+        var routes = {
+            getMyFeedItems: "GetRssFeedItems",
+            getFeedUrls: "GetRssFeed",
+            addFeed: "AddRssFeed",
+            removeFeed: "DeleteRssFeed"
+        }
+
+
+        /*
+        * Get all Tools
+        */
+        _api.GET_MainFeed = function (params) {
+            return $http({
+                method: 'GET',
+                url: root + routes.getMyFeedItems,
+                params : params,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+
+        
+
+        /*
+        * Get Tools that belong to a user
+        */
+        _api.GET_FeedUrls = function (params) {
+            return $http({
+                method: 'GET',
+                url: root + routes.getFeedUrls,
+                params : params,
+                headers: { 'Content-Type' : 'application/json' }
+            })
+        }
+
+        /*
+        * Get Tools that belong to a user
+        */
+        _api.POST_addFeedUrl = function (data, params) {
+
+            var jsonData = JSON.stringify(data);
+            return $http({
+                method: 'POST',
+                url: root + routes.addFeed,
+                data : jsonData,
+                params: params,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+
+        _api.POST_removeFeedUrl = function (data, params) {
+
+            var jsonData = JSON.stringify(data);
+            return $http({
+                method: 'POST',
+                url: root + routes.removeFeed,
+                data: jsonData,
+                params: params,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+        
+
+        return _api;
+}]);
+
+

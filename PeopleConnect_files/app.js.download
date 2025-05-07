@@ -1,0 +1,27 @@
+
+
+/**
+ * APP - Entry Point
+ * Author : Andrew Stephenson
+ * 
+ */
+// ALl Global Events Here
+var peopleconnectApp = angular.module('peopleconnectApp', ['ngAnimate',
+    'Alertify',
+    'angular-underscore',
+    'angular-momentjs',
+    'dashboardController',
+    'toolsWidgetCtrl',
+    'dragNDropController',
+    'newsWidgetCtrl',
+    'eventsWidgetCtrl',
+    'rssWidgetCtrl',
+    'favLinksWidgetCtrl',
+    'addGroupController',
+    'addToolsController',
+    'addNewsFiltersController',
+    'addEventsFiltersController',
+    'addRssFeedController',
+    'addFavLinksController',
+    'loginErrController',
+    'ngDragDrop']);

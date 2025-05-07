@@ -1,0 +1,83 @@
+﻿peopleconnectApp.factory('EventsApi', ['$window', '$rootScope', '$http',
+    function (win, $rootScope, $http) {
+        var _api = {},
+            root = "/webdataapi/dashboard/";
+
+        /* Available Endpoints */
+        var routes = {
+            getEventsFeed: "GetEvents",
+            getEventCategories: "GetEventsCategories",
+            getEventLocations: "GetEventsLocations",
+            getAppliedFilters: "GetAppliedEventsFilters",
+            updateAppliedFilters: "UpdateEventsFilters"
+        }
+        /*
+        getEventsFeed
+        getAppliedFilters
+        updateAppliedFilters
+        */
+        /*
+        * Get all Tools
+        */
+        _api.GET_eventList = function (params) {
+            return $http({
+                method: 'GET',
+                url: root + routes.getEventsFeed,
+                params : params,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+
+
+
+        _api.POST_saveFilters = function (params, filters) {
+            jsonData = JSON.stringify(filters);
+
+            return $http({
+                method: 'POST',
+                url: root + routes.updateAppliedFilters,
+                data: jsonData,
+                params : params,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+
+
+        /*
+        * Get News Feed
+        */
+        _api.GET_categories = function () {
+            return $http({
+                method: 'GET',
+                url: root + routes.getEventCategories,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+
+        /*
+       * Get News Feed
+       */
+        _api.GET_locations = function () {
+            return $http({
+                method: 'GET',
+                url: root + routes.getEventLocations,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+
+        /*
+       * Get News Feed
+       */
+        _api.GET_Appliedfilters = function (params) {
+            return $http({
+                method: 'GET',
+                params: params,
+                url: root + routes.getAppliedFilters,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
+
+
+
+        return _api;
+    }]);

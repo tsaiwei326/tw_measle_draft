@@ -1,0 +1,182 @@
+var addNewsFiltersController = angular.module('addNewsFiltersController', ['ui.bootstrap']);
+addNewsFiltersController.controller('addNewsFiltersCtrl', function ($scope, $uibModalInstance, NewsService, user) {
+
+	var $ctrl = this;
+	var self = $scope;
+	$ctrl.isLoadingCategoryList = true;
+	$ctrl.isLoadingTopicList = true;
+	$ctrl.isLoadingMyFilters = true;
+	$ctrl.selectedFilters = {};
+	$ctrl.categories = [];
+	$ctrl.topics = [];
+	$ctrl.appliedFilters = [];
+	$ctrl.selectedFilters = {};
+	$ctrl.appliedFiltersCopy = [];
+	$ctrl.selectedFiltersCopy = {};
+	$ctrl.isLoading = false;
+	console.log('loading news');
+
+
+    // GET_myfilters - params
+    // POST_saveFilters - params, filters
+
+	self.user = user;
+
+	var data = {
+	    userId: self.user.id
+	};
+
+    NewsService.getMyFilters(data)
+        .then(function (response) {
+        	console.log('loaded news', response);
+        	if ($ctrl.appliedFilters.length > 0) {
+        		_.each(response.data, function (val, key) {
+        			$ctrl.appliedFilters.push(val);
+        			$ctrl.selectedFilters[val.FilterSitecoreItemID] = true;
+        			$ctrl.appliedFiltersCopy = angular.copy($ctrl.appliedFilters);
+        			$ctrl.selectedFiltersCopy = angular.copy($ctrl.selectedFilters);
+        		});
+        	} else {
+
+        		_.each(response.data, function (val, key) {
+        			$ctrl.selectedFilters[val.FilterSitecoreItemID] = true;
+        			$ctrl.selectedFiltersCopy = angular.copy($ctrl.selectedFilters);
+        		});
+
+        		$ctrl.appliedFilters = response.data;
+        		$ctrl.appliedFiltersCopy = angular.copy($ctrl.appliedFilters);
+        		$ctrl.isLoadingMyFilters = false;
+        	}
+        })
+        .catch(function (err) {
+        	console.log(err);
+        })
+        .finally(function () {
+        	$ctrl.isLoadingMyFilters = false;
+        });
+
+	NewsService.getAllCategories()
+        .then(function (response) {
+
+        	let categoryList = response.data;
+
+        	if ($ctrl.categories.length > 0) {
+
+        		_.each(categoryList, function (val, key) {
+        			/* 
+                     * by using push we bind into angulars 
+                     * $digest cycle to update the ui
+                     */
+
+        			$ctrl.categories.push(val);
+        		});
+        	} else {
+        		$ctrl.categories = response;
+        	}
+
+        })
+        .catch(function (err) {
+        	console.log(err);
+        })
+        .finally(function () {
+        	$ctrl.isLoadingCategoryList = false;
+        });
+
+	NewsService.getAllTopics().then(function (response) {
+        let topicList = response.data;
+        console.log($ctrl.topics);
+
+        if ($ctrl.topics.length > 0) {
+
+        	_.each(topList, function (val, key) {
+        		/* 
+                * by using push we bind into angulars 
+                * $digest cycle to update the ui
+                */
+
+        		$ctrl.topics.push(val);
+        	});
+        }
+        else {
+        	$ctrl.topics = response;
+        }
+    })
+    .catch(function (err) {
+        console.log(err);
+    })
+    .finally(function () {
+        $ctrl.isLoadingTopicList = false;
+    });
+
+	$ctrl.saveFilters = function () {
+
+		var FiltersArr = [];
+
+		_.each($ctrl.selectedFilters, function (key, val) {
+
+			var outObj;
+
+			/* THIS COULD BE DONE FASTER */
+			console.log(key);
+
+			if (key) {
+				outObj = _.filter($ctrl.topics, function (topic) {
+					return topic.FilterSitecoreItemID == val;
+				});
+
+				if (outObj.length <= 0) {
+					outObj = _.filter($ctrl.categories, function (topic) {
+						return topic.FilterSitecoreItemID == val;
+					});
+				}
+
+				FiltersArr.push(outObj[0]);
+			}
+
+		});
+
+	    NewsService.saveFilters(data, FiltersArr).then(function (response) { $ctrl.appliedFilters = FiltersArr; })
+		.catch(function (response) { console.log(response); })
+		.finally(function () {
+			$uibModalInstance.close();
+		});
+
+		//$uibModalInstance.close(FiltersArr);
+	};
+
+	$ctrl.resetNewsFilters = function () {
+	    $ctrl.appliedFiltersCopy.length = 0;
+
+	    var props = Object.getOwnPropertyNames($ctrl.selectedFiltersCopy);
+
+	    for (var i = 0; i < props.length; i++) {
+	        delete $ctrl.selectedFiltersCopy[props[i]];
+	    }
+	    
+		$ctrl.appliedFilters = angular.copy($ctrl.appliedFiltersCopy);
+		$ctrl.selectedFilters = angular.copy($ctrl.selectedFiltersCopy);
+	};
+
+	$ctrl.removeFilter = function (filter) {
+
+		let index = $ctrl.appliedFilters.indexOf(filter);
+		var deletedFilter;
+
+		if (index != -1) {
+			console.log('removing from: ' + index);
+			deletedFilter = $ctrl.appliedFilters[index];
+			$ctrl.appliedFilters.splice(index, 1);
+		}
+
+		// uncheck box
+		$ctrl.selectedFilters[deletedFilter.FilterSitecoreItemID] = false;
+
+		console.log('delete selected', deletedFilter);
+	};
+
+	$ctrl.closeModal = function () {
+		$uibModalInstance.close();
+	};
+
+	/* TODO create more modular functions */
+});

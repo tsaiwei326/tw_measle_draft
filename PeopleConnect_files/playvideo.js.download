@@ -1,0 +1,16 @@
+﻿$('a.play-video').each(function () {
+    $(this).on('click', function (ev) {
+        ev.preventDefault();
+        $(this).fadeOut(300);
+        ////$("#video")[0].src += "&autoplay=1";
+        ////$("iframe").each
+        ////(
+        ////    function (index) {
+        ////    var Myobj = $(this)[0];
+        ////    Myobj.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        ////    }
+        ////);
+        var nextIframe = $(this).siblings("iframe")[0];
+        nextIframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+    });
+});

@@ -1,0 +1,172 @@
+var addEventsFiltersController = angular.module('addEventsFiltersController', ['ui.bootstrap']);
+addEventsFiltersController.controller('addEventsFiltersCtrl', function ($scope, $uibModalInstance, EventsService, user) {
+
+	var $ctrl = this;
+	var self = $scope;
+	$ctrl.isLoadingCategoryList = true;
+	$ctrl.isLoadingLocationList = true;
+	$ctrl.isLoadingMyFilters = true;
+	$ctrl.selectedFilters = {};
+	$ctrl.categories = [];
+	$ctrl.locations = [];
+	$ctrl.appliedFilters = [];
+	$ctrl.selectedFilters = {};
+	$ctrl.appliedFiltersCopy = [];
+	$ctrl.selectedFiltersCopy = {};
+
+	self.user = user;
+
+	var data = {
+		userId: self.user.id
+	};
+
+	EventsService.getMyFilters(data).then(function (response) {
+		let filterList = response;
+
+		if ($ctrl.appliedFilters.length > 0) {
+			_.each(filterList, function (val, key) {
+				console.log(val);
+				$ctrl.appliedFilters.push(val);
+				$ctrl.selectedFilters[val.FilterSitecoreItemID] = true;
+				$ctrl.appliedFiltersCopy = angular.copy($ctrl.appliedFilters);
+				$ctrl.selectedFiltersCopy = angular.copy($ctrl.selectedFilters);
+			});
+		}
+		else {
+
+			_.each(filterList, function (val, key) {
+				console.log(val);
+				$ctrl.selectedFilters[val.FilterSitecoreItemID] = true;
+				$ctrl.selectedFiltersCopy = angular.copy($ctrl.selectedFilters);
+			});
+
+			$ctrl.appliedFilters = filterList;
+			$ctrl.appliedFiltersCopy = angular.copy($ctrl.appliedFilters);
+		}
+	})
+    .catch(function (err) {
+    	console.log(err);
+    })
+    .finally(function () {
+    	$ctrl.isLoadingFilterList = false;
+    });
+
+	EventsService.getAllCategories().then(function (response) {
+
+		let categoryList = response.data;
+
+		if ($ctrl.categories.length > 0) {
+
+			_.each(categoryList, function (val, key) {
+				/* 
+                    * by using push we bind into angulars 
+                    * $digest cycle to update the ui
+                    */
+
+				$ctrl.categories.push(val);
+			});
+		}
+		else {
+			$ctrl.categories = response;
+		}
+	})
+    .catch(function (err) {
+    	console.log(err);
+    })
+    .finally(function () {
+    	$ctrl.isLoadingCategoryList = false;
+    });
+
+	EventsService.getAllLocations().then(function (response) {
+		let locationsList = response.data;
+
+		if ($ctrl.locations.length > 0) {
+
+			_.each(locationsList, function (val, key) {
+				/* 
+				* by using push we bind into angulars 
+				* $digest cycle to update the ui
+				*/
+
+				$ctrl.locations.push(val);
+			});
+		} else {
+			$ctrl.locations = response;
+		}
+	})
+    .catch(function (err) {
+    	console.log(err);
+    })
+    .finally(function () {
+    	$ctrl.isLoadingLocationList = false;
+    });
+
+	$ctrl.saveFilters = function () {
+
+		var FiltersArr = [];
+
+		_.each($ctrl.selectedFilters, function (key, val) {
+
+			var outObj;
+
+			/* THIS COULD BE DONE FASTER */
+
+			//only iterate true values ( false may be set is a user checks and unchecks a value)
+			if (key) {
+				// check if new filter is a location
+				outObj = _.filter($ctrl.locations, function (location) {
+					return location.FilterSitecoreItemID == val;
+				});
+
+				// if no outObj generated a filter was not found in the location array making it by default a category filter
+				if (outObj.length <= 0) {
+					outObj = _.filter($ctrl.categories, function (category) {
+						return category.FilterSitecoreItemID == val;
+					});
+				}
+
+				FiltersArr.push(outObj[0]);
+			}
+		});
+
+		EventsService.saveFilters(data, FiltersArr).then(function (response) {
+			$ctrl.appliedFilters = FiltersArr;
+		})
+		.catch(function (response) { console.log(response); })
+		.finally(function () {
+			$uibModalInstance.close(true);
+			//reload applied filters
+		});
+	};
+
+	$ctrl.closeModal = function () {
+		$uibModalInstance.close();
+	};
+
+	$ctrl.resetNewsFilters = function () {
+	    $ctrl.appliedFiltersCopy.length = 0;
+
+	    var props = Object.getOwnPropertyNames($ctrl.selectedFiltersCopy);
+
+	    for (var i = 0; i < props.length; i++) {
+	        delete $ctrl.selectedFiltersCopy[props[i]];
+	    }
+
+		$ctrl.appliedFilters = angular.copy($ctrl.appliedFiltersCopy);
+		$ctrl.selectedFilters = angular.copy($ctrl.selectedFiltersCopy);
+	};
+
+	$ctrl.removeFilter = function (filter) {
+
+		let index = $ctrl.appliedFilters.indexOf(filter);
+		var deletedFilter;
+
+		if (index != -1) {
+			deletedFilter = $ctrl.appliedFilters[index];
+			$ctrl.appliedFilters.splice(index, 1);
+		}
+
+		// uncheck box
+		$ctrl.selectedFilters[deletedFilter.FilterSitecoreItemID] = false;
+	};
+});

@@ -1,0 +1,68 @@
+﻿peopleconnectApp.factory('EventsService', ['$q', '$rootScope', 'EventsApi', function ($q, $rootScope, EventsApi) {
+	var _eventsService = {};
+    var root = $rootScope;
+    // create singleton
+    root._eventList= [];
+
+    _eventsService.getEvents = function (params) {
+    	var defer = $q.defer();
+
+    	EventsApi.GET_eventList(params).then(function (response) {
+    		defer.resolve(response.data);
+    	}).catch(function (response) {
+    		defer.reject(response);
+    	});
+
+    	return defer.promise;
+    };
+
+    _eventsService.getAllCategories = function () {
+    	var defer = $q.defer();
+
+    	EventsApi.GET_categories().then(function (response) {
+    		defer.resolve(response.data);
+    	}).catch(function (response) {
+    		defer.reject(response);
+    	});
+
+    	return defer.promise;
+    };
+
+    _eventsService.getAllLocations = function () {
+    	var defer = $q.defer();
+
+    	EventsApi.GET_locations().then(function (response) {
+    		defer.resolve(response.data);
+    	}).catch(function (response) {
+    		defer.reject(response);
+    	});
+
+    	return defer.promise;
+    };
+
+    _eventsService.getMyFilters = function (params) {
+    	var defer = $q.defer();
+
+    	EventsApi.GET_Appliedfilters(params).then(function (response) {
+    		defer.resolve(response.data);
+    	}).catch(function (response) {
+    		defer.reject(response);
+    	});
+
+    	return defer.promise;
+    };
+
+    _eventsService.saveFilters = function (params, filters) {
+    	var defer = $q.defer();
+
+    	EventsApi.POST_saveFilters(params, filters).then(function (response) {
+    		defer.resolve(response);
+    	}).catch(function (response) {
+    		defer.reject(response);
+    	});
+
+    	return defer.promise;
+    };
+
+    return _eventsService;
+}]);

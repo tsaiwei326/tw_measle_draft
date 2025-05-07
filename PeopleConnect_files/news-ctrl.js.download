@@ -1,0 +1,102 @@
+﻿var newsWidgetCtrl = angular.module('newsWidgetCtrl', ['ui.bootstrap']);
+
+newsWidgetCtrl.controller('newsCtrl', ['$scope', '$uibModal', '$document', 'NewsService', 'Alertify',
+    function ($scope, $uibModal, $document, NewsService, Alertify) {
+
+    	var self = $scope;
+    	self.urlRoot = "/webdataapi/dashboard/";
+    	self.animationsEnabled = true;
+    	self.newsFeed = [];
+    	self.isRSSEmpty = false;
+
+    	/*
+        * Init
+        * =================================
+        */
+
+    	self.user = {
+            id: '',
+            sitetags: ''
+    	};
+
+    	self.$watch(function () {
+    		return self.user;
+    	}, function (newVal) {
+    		_loadNews();
+    	});
+
+    	self.addFilters = function (parentSelector) {
+
+    		if (self.user.id !== '0') {
+    			self.showFilters(parentSelector);
+    		}
+    		else {
+    			self.showLoginError(parentSelector);
+    		}
+    	};
+
+    	self.showLoginError = function (parentElem) {
+    		var modalInstance = $uibModal.open({
+    			animation: self.animationsEnabled,
+    			ariaLabelledBy: 'modal-title',
+    			ariaDescribedBy: 'modal-body',
+    			templateUrl: 'loginError.html',
+    			controller: 'loginErrCtrl',
+    			controllerAs: '$ctrl',
+    			size: 'large',
+    		});
+
+    		modalInstance.result.then(function () {
+    			//do something after showing login err message
+    		}, function () {
+    			// chain anything you want here
+    		});
+    	};
+
+    	self.showFilters = function (parentSelector) {
+    		var parentElem = parentSelector ? angular.element($document[0].querySelector('.modal-demo ' + parentSelector)) : undefined;
+
+    		var modalInstance = $uibModal.open({
+    			animation: self.animationsEnabled,
+    			ariaLabelledBy: 'modal-title',
+    			ariaDescribedBy: 'modal-body',
+    			templateUrl: 'addNewsFilterCopy.html',
+    			controller: 'addNewsFiltersCtrl',
+    			controllerAs: '$ctrl',
+    			size: 'large',
+    			appendTo: parentElem,
+    			resolve: {
+    				user: function () {
+    					return self.user;
+    				}
+    			}
+    		});
+
+    		modalInstance.result.then(function () {
+    			_loadNews();
+    		}, function () {
+    			// chain anything you want here
+    		});
+    	};
+
+    	/* Helpers
+        ================= */
+    	function _loadNews() {
+
+    		var data = {
+                userId: self.user.id,
+                sitetags: self.user.sitetags
+    		};
+
+    	    NewsService.getNews(data).then(function (response) {
+    	        if (!response) self.isRSSEmpty = true;
+    	            else self.isRSSEmpty = false;
+
+                self.newsFeed = response;
+            })
+            .catch(function (response) {
+                console.log(response);
+            });
+    	}
+    }
+]);

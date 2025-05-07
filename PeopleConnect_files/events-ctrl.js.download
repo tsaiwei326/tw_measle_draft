@@ -1,0 +1,100 @@
+﻿var eventsWidgetCtrl = angular.module('eventsWidgetCtrl', ['ui.bootstrap']);
+
+eventsWidgetCtrl.controller('eventsCtrl', ['$scope', '$uibModal', '$document', 'EventsService', 'Alertify',
+    function ($scope, $uibModal, $document, EventsService, Alertify) {
+
+    	var self = $scope;
+
+    	self.animationsEnabled = true;
+    	self.eventsFeed = [];
+    	self.isRSSEmpty = false;
+
+    	/*
+        * Init
+        * =================================
+        */
+    	self.user = {
+            id: '',
+            eventTags: ''
+    	};
+
+    	self.$watch(function () {
+    		return self.user;
+    	}, function (newVal) {
+    		_loadEvents();
+    	});
+
+    	self.addFilters = function (parentSelector) {
+
+    		if (self.user.id !== '0') {
+    			self.showFilters(parentSelector);
+    		}
+    		else {
+    			self.showLoginError(parentSelector);
+    		}
+    	};
+
+    	self.showLoginError = function (parentSelector) {
+    		var modalInstance = $uibModal.open({
+    			animation: self.animationsEnabled,
+    			ariaLabelledBy: 'modal-title',
+    			ariaDescribedBy: 'modal-body',
+    			templateUrl: 'loginError.html',
+    			controller: 'loginErrCtrl',
+    			controllerAs: '$ctrl',
+    			size: 'large',
+    		});
+
+    		modalInstance.result.then(function () {
+    			//do something after showing login err message
+    		}, function () {
+    			// chain anything you want here
+    		});
+    	};
+
+    	self.showFilters = function (parentSelector) {
+
+    		var parentElem = parentSelector ? angular.element($document[0].querySelector('.modal-demo ' + parentSelector)) : undefined;
+    		var modalInstance = $uibModal.open({
+    			animation: self.animationsEnabled,
+    			ariaLabelledBy: 'modal-title',
+    			ariaDescribedBy: 'modal-body',
+    			templateUrl: 'addEventsFilter.html',
+    			controller: 'addEventsFiltersCtrl',
+    			controllerAs: '$ctrl',
+    			size: 'large',
+    			resolve: {
+    				user: function () {
+    					return self.user;
+    				}
+    			}
+    		});
+
+    		modalInstance.result.then(function (hasBeenUpdated) {
+    			if (hasBeenUpdated) {
+    				// reload
+    				_loadEvents();
+    			}
+    		}, function () {
+    			// chain anything you want here
+    		});
+    	};
+
+    	function _loadEvents() {
+
+    		var data = {
+                userId: self.user.id,
+                eventTags: self.user.eventTags
+    		};
+
+    	    EventsService.getEvents(data).then(function (response) {
+    	        if (!response) self.isRSSEmpty = true;
+    	            else self.isRSSEmpty = false;
+    	        self.eventsFeed = response;
+    		})
+            .catch(function (response) {
+            	console.log(response);
+            });
+    	}
+    }
+]);

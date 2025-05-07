@@ -1,0 +1,56 @@
+peopleconnectApp.factory('RssService', ['$q', '$rootScope', 'RssApi', function ($q, $rootScope, RssApi) {
+    var _rssService = {}
+    var root = $rootScope;
+
+    _rssService.getCustomNewsFeed = function (params) {
+        var defer = $q.defer();
+
+        RssApi.GET_MainFeed(params).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+        
+        return defer.promise;
+    }
+
+    _rssService.getMyFeeds = function (params) {
+        var defer = $q.defer();
+
+        RssApi.GET_FeedUrls(params).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+    _rssService.addFeedUrl = function (body, params) {
+        var defer = $q.defer();
+
+        RssApi.POST_addFeedUrl(body, params).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+    _rssService.removeFeedUrl = function (body, params) {
+        var defer = $q.defer();
+
+        RssApi.POST_removeFeedUrl(body, params).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+    
+   
+
+    return _rssService;
+}]);

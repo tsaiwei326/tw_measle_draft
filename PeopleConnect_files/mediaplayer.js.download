@@ -1,0 +1,269 @@
+﻿$(function () {
+    $('.photo-gallery').each(function () {
+
+        $(this).find('.js-thumbnail').each(function () {
+            var thumbsId = $(this).data("thumbs-id")
+            // get the url from hidden input based on id
+            var iframeUrl = $($("#" + thumbsId).val()).first().attr('src');
+            var tumbnailImg = "";
+            if (iframeUrl.indexOf("https://player.vimeo.com/") != -1) {
+                // vimeo
+                const getVimeoIdFromUrl = (url) => {
+                    // Look for a string with 'vimeo', then whatever, then a
+                    // forward slash and a group of digits.
+                    const match = /vimeo.*\/(\d+)/i.exec(url);
+                    // If the match isn't null (i.e. it matched)
+                    if (match) {
+                        // The grouped/matched digits from the regex
+                        return match[1];
+                    }
+                };
+
+                const url = "https://vimeo.com/api/oembed.json?url=https://player.vimeo.com/video/" + getVimeoIdFromUrl(iframeUrl);
+
+                fetch(url).then(function (res) {
+                    return res.json()
+                }).then(function (data) {
+                    tumbnailImg = data.thumbnail_url;
+                    $("." + thumbsId + "-img").attr("src", tumbnailImg);
+                });
+
+            } else {
+                // youtube
+                const getYouTubeVideoIdFromUrl = (url) => {
+                    // Our regex pattern to look for a youTube ID
+                    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                    //Match the url with the regex
+                    const match = url.match(regExp);
+                    //Return the result
+                    return match && match[2].length === 11 ? match[2] : undefined;
+                };
+                tumbnailImg = "https://img.youtube.com/vi/" + getYouTubeVideoIdFromUrl(iframeUrl) + "/sddefault.jpg"
+                $("." + thumbsId + "-img").attr("src", tumbnailImg);
+            }
+
+        });
+
+
+        var id = $(this).find(".gallery-top").data('id');
+        var swiperClass = '.swiper-' + id;
+        var swiperThumbsClass = '.swiper-thumbs-' + id;
+        var swiperUpperClass = '.swiper-upper-' + id;
+        var slideCount = $('#slideCount-' + id).val();
+        var totalSlides = slideCount;
+     
+        var galleryThumbs = new Swiper(swiperThumbsClass, {
+            slidesPerView: "auto",
+            slideToClickedSlide: true,
+            navigation: {
+                nextEl: ".swiper-button-next-" + id,
+                prevEl: ".swiper-button-prev-" + id,
+            },
+            freeMode: true,
+            watchSlidesProgress: true,
+            //loop: true,
+            //centeredSlides: true,
+        });
+        var nextButton = document.querySelector('.swiper-button-thumbs-next-' + id);
+
+         var galleryTopupper = new Swiper(swiperUpperClass, {
+            spaceBetween: 0,
+            slidesPerView: 1,
+            loop: false,
+            //   loopedSlides: 10, //looped slides should be the same
+            navigation: {
+                nextEl: ".swiper-button-next-" + id,
+                prevEl: ".swiper-button-prev-" + id,
+            },
+            // thumbs: {
+            //   swiper: galleryThumbs,
+            // },
+            keyboard: {
+                enabled: true,
+                onlyInViewport: false,
+            },
+            on: {
+                init: function () {
+                    $('.swiper-slide-active .expand-gallery').attr('tabindex', 0);
+                    //set initial slide thumbnail
+                    $('.gallery-thumbs .swiper-slide').first().addClass('swiper-slide-thumb-active');
+                    $('.gallery-thumbs .swiper-slide').attr('tabindex', 0);
+
+                },
+                slideChange: function () {
+                    //get index of new slide
+                    let idx = galleryTopupper.activeIndex;
+                    if (galleryTopupper.activeIndex < totalSlides - 1) {
+                        nextButton.classList.remove('swiper-button-disabled');
+                    } else {
+                        nextButton.classList.add('swiper-button-disabled');
+                    }
+                    // Get the current gallery-thumbs instance's swiper-wrapper
+                    var swiperWrapper = galleryThumbs.wrapperEl;
+                    //hide tab navigation for other slides
+                    $('.swiper-slide .expand-gallery[tabindex=0]').attr('tabindex', -1);
+                      // Add the class to the new active slide
+                    if (swiperWrapper) {
+                        // Remove the class from the previously active slide
+                        var previouslyActiveThumb = swiperWrapper.querySelector('.swiper-slide-thumb-active');
+                        if (previouslyActiveThumb) {
+                            previouslyActiveThumb.classList.remove('swiper-slide-thumb-active');
+                        }
+                        // Add the class to the new active slide
+                        var newActiveThumb = swiperWrapper.children[idx];
+                        if (newActiveThumb) {
+                            newActiveThumb.classList.add('swiper-slide-thumb-active');
+                            galleryThumbs.slideTo(galleryTopupper.activeIndex);
+                        }
+                    }
+                },
+                slideChangeTransitionEnd: function () {
+                    //set tab navigation for new slide
+                    $('.swiper-slide-active .expand-gallery').attr('tabindex', 0);
+                },
+            }
+        });
+
+        // Initialize Next button state
+        if (galleryThumbs.activeIndex <= totalSlides - 1) {
+            nextButton.classList.remove('swiper-button-disabled');
+        } else {
+            nextButton.classList.add('swiper-button-disabled');
+        }
+
+        var galleryTop = new Swiper(swiperClass, {
+            slidesPerView: 1,
+            freeMode: true,
+            //loop: true,
+            //loopedSlides: slideCount, // this should per total slides
+            centeredSlides: true,
+            thumbs: {
+                swiper: galleryThumbs,
+              },
+            on: {
+                slideChange: function () {
+                    console.log("callstack")
+                    $(swiperClass).find('.swiper-slide').each(function () {
+                        var player = $(this).find('iframe').get(0);
+                        var command;
+                        console.log('player',player);
+                        if (player) {
+                            if (player.src.indexOf("player.vimeo") != -1) {
+                                command = {
+                                    "method": "pause",
+                                    "value": "true"
+                                };
+                            } else {
+                                command = {
+                                    "event": "command",
+                                    "func": "pauseVideo"
+                                };
+                            }
+                            player.contentWindow.postMessage(JSON.stringify(command), '*');
+                        }
+                    });
+                }
+            }
+        });
+
+      
+
+        // galleryTop.controller.control = galleryThumbs;
+        // galleryThumbs.controller.control = galleryTop;
+    })
+
+    $('.expand-gallery').on("click", function () {
+        $('.sticky-wrapper').css({ 'z-index': '1', 'transition': 'none' });
+        $('.secondary-nav__inner-background').css({ 'z-index': '1', 'transition': 'none' });
+        var $photoGallery = $(this).closest('.photo-gallery');
+
+        var $galleryTop = $photoGallery.find('.gallery-top');
+
+        $photoGallery.find('.gallery-popup-image img').attr("src", $(this).parent().find("img").attr("src"));
+
+        //disable swiping when gallery is open    
+        var topGallery = $galleryTop[0].swiper;
+        topGallery.params.threshold = 10000;
+        topGallery.init();
+        $photoGallery.find('.gallery-popup').show();
+
+        $photoGallery.css({ 'z-index': '1' });
+
+    });
+
+    $('.close-gallery').on("click", function () {
+        var $photoGallery = $(this).closest('.photo-gallery');
+        var $galleryTop = $photoGallery.find('.gallery-top');
+
+        //enable swiping when gallery is open
+        var topGallery = $galleryTop[0].swiper;
+        topGallery.params.threshold = 0;
+        topGallery.init();
+
+        $photoGallery.find('.gallery-popup').hide();
+        $photoGallery.css({ 'z-index': '0' });
+        $('.sticky-wrapper').css({ 'z-index': '', 'transition': '' });
+        $('.secondary-nav__inner-background').css({ 'z-index': '', 'transition': '' });
+    });
+
+    // Let the document know when the mouse is being used
+    document.body.addEventListener('mousedown', function () {
+        $(".photo-gallery").addClass('using-mouse');
+    });
+
+    // Re-enable focus styling when Tab is pressed
+    document.body.addEventListener('keydown', function (event) {
+        if (event.keyCode === 9) {
+            $(".photo-gallery").removeClass('using-mouse');
+        }
+    });
+
+    //this traps the tab navigation when gallery is open
+    $(".photo-gallery").on('keydown', function (e) {
+
+        if ($(this).find('.gallery-popup').is(":visible")) {
+            var keyCode = e.keyCode || e.which;
+            if (keyCode == 9) {
+                e.preventDefault();
+                $('.close-gallery').focus();
+            }
+        }
+    });
+    var selection = document.getElementsByTagName('iframe');
+    var iframes = Array.prototype.slice.call(selection);
+    var i = 0;
+
+    iframes.forEach(function (iframe) {
+        var iframeSrc = iframe.getAttribute("src");
+        var isIFrameYoutubeType = false;
+
+        if (iframeSrc.includes("youtube")) {
+            isIFrameYoutubeType = true;
+        }
+        if (isIFrameYoutubeType) {
+
+            if (!iframeSrc.includes("?")) {
+                iframeSrc = iframeSrc + "?";
+            }
+
+            if (!iframeSrc.includes("rel=0")) {
+                iframeSrc = iframeSrc + "&rel=0";
+                iframe.setAttribute("src", iframeSrc);
+            }
+
+            if (iframeSrc.includes("&autoplay=1")) {
+                iframeSrc = iframeSrc.replace("&autoplay=1", "");
+                iframe.setAttribute("src", iframeSrc);
+            }
+
+            if (!iframeSrc.includes("enablejsapi=1")) {
+                iframe.setAttribute("src", iframeSrc + '&enablejsapi=1');
+            }
+
+        }
+
+        i++;
+
+    });
+
+})

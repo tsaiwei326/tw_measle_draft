@@ -1,0 +1,39 @@
+﻿var dashboardController = angular.module('dashboardController', ['ui.bootstrap']);
+
+dashboardController.controller('dashboardCtrl', ['$scope', '$uibModal', '$document', 'Alertify',
+	function ($scope, $uibModal, $document, Alertify) {
+
+		var self = $scope;
+        /* below code is no more needed we have managed in angular way only*/
+		/*$(document).on('keyup', '#physicianDashboardToolSearch', function () {
+
+			var searchTerm = this.value;
+
+			$('.toolsWidget--list .icon-block:not(".toolsWidget--list__addbtn")').each(function () {
+				var $iconBlock = $(this);
+				var $title = $iconBlock.find('.icon-block--title');
+				$iconBlock.hide();
+
+				if (searchTerm === "") {
+					$('.toolsWidget--list .icon-block').show();
+					return false;
+				}
+
+				// search all tools and group titles
+				if ($title.text().toLowerCase().indexOf(searchTerm.toLowerCase()) > -1) {
+					$iconBlock.show();
+				}
+
+				if ($iconBlock.hasClass('group')) { // Search group to see if it contains app
+					$iconBlock.find('li .icon-block--title label').each(function () {
+						var title = $(this).text();
+
+						if (title.toLowerCase().indexOf(searchTerm.toLowerCase()) > -1) {
+							$iconBlock.show();
+						}
+					});
+				}
+			});
+		});*/
+	}
+]);

@@ -1,0 +1,17 @@
+peopleconnectApp.directive('checkImage', function ($http) {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attr) {
+            element.on('error', function () {
+                console.log('DOM error');
+                element.attr('src', attr.onError);
+            })
+
+            if (!attr.ngSrc) {
+                console.log('found error');
+                element.attr('ngSrc', attr.onError);
+            }
+            //
+        }
+    };
+});

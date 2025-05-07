@@ -1,0 +1,1475 @@
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+"use strict"
+
+window.Utils = window.Utils || {};
+var $window = $(window);
+var CHS = {};
+
+var DOMUtils = require('./utils/DOMUtils');
+
+var Calendar = require('./modules/_calendar.js');
+var Carousel = require('./modules/_carousel.js');
+var DocumentNavigator = require('./modules/_documentNavigator.js');
+var Header = require('./modules/_header.js');
+var HeroCarousel = require('./modules/_heroCarousel.js');
+var LeftNavigation = require('./modules/_leftNavigation.js');
+var RelatedContent = require('./modules/_relatedContent.js');
+var rssFeed = require('./modules/_rssFeed.js');
+var VideoModal = require('./modules/_videoModal.js');
+var ImageModal = require('./modules/_imageModal.js');
+
+
+
+(function ($window, window, document, jQuery, app) {
+
+	CHS = {
+
+		initGlobal: function () {
+
+
+		},
+
+		/*
+		  *  Intializing property detail page carousel functionality
+		 */
+
+		initCarousel: function () {
+
+			Carousel.init();
+		},
+
+		initEventsCalendar: function() {
+
+			Calendar.init();
+
+		},
+		
+		initDocumentNavigator: function() {
+			
+			DocumentNavigator.init();
+			
+		},
+		initHeader: function() {
+
+			Header.initDesktop();
+			Header.initMobile();
+
+		},
+		initLeftNav: function() {
+
+			LeftNavigation.initMobile();
+
+		},
+
+		initHeroCarousel: function () {
+
+			HeroCarousel.init();
+
+		},
+
+		initRelatedContent: function() {
+
+			RelatedContent.init();
+
+		},
+		initRSS: function () {
+
+			rssFeed.init();
+
+		},
+		initVideoModal: function () {
+
+			VideoModal.init();
+
+		},
+         initImageModal: function () {
+
+            ImageModal.init();
+
+        }
+	
+	}
+
+})(window, document, jQuery, window.Utils);
+
+jQuery( document ).ready( function (jQuery) {
+
+	"use strict";
+
+	CHS.initGlobal($window);
+
+	CHS.initCarousel($window);
+	
+	CHS.initDocumentNavigator($window);
+
+	CHS.initHeader($window);
+
+	CHS.initHeroCarousel($window);
+
+	CHS.initLeftNav($window);
+
+	CHS.initRelatedContent($window);
+
+	CHS.initRSS($window);
+	
+	CHS.initEventsCalendar();
+
+	CHS.initVideoModal($window);
+
+    CHS.initImageModal($window);
+
+});
+
+
+},{"./modules/_calendar.js":2,"./modules/_carousel.js":3,"./modules/_documentNavigator.js":4,"./modules/_header.js":5,"./modules/_heroCarousel.js":6,"./modules/_imageModal.js":7,"./modules/_leftNavigation.js":8,"./modules/_relatedContent.js":9,"./modules/_rssFeed.js":10,"./modules/_videoModal.js":11,"./utils/DOMUtils":12}],2:[function(require,module,exports){
+(function ($) {
+
+    var calendar = {
+
+        init : function () {
+
+            if (DOMUtils.isUndefined(document.getElementById('calendar'))) return;
+            
+            var gEventSearchStartFolderID = $('#eventSearchStartFolderID').val();
+            var gEventTags = $('#eventTags').val();
+            var gVirtualFolder = $('#virtualFolder').val();
+            var gTitle =  "";
+            var gCategory =  "";
+            var gLocation =  "";
+
+            $('#calendar').fullCalendar({
+
+                defaultDate: new Date().toJSON().slice(0, 10),
+                
+                editable: true,
+
+                eventLimit: true, 
+
+                defaultView: 'month',
+
+                events: function(start, end, timezone, callback) {
+
+                    var evtObject = {
+
+                        start   : start.format("L"),
+
+                        end     : end.format("L"),
+
+                        category    : gCategory,
+
+                        location    : gLocation,
+
+                        title: gTitle.replace(/\s+/g, '-'),
+
+                        eventSearchStartFolderID: gEventSearchStartFolderID,
+
+                        eventTags: gEventTags,
+
+                        virtualFolder: gVirtualFolder
+
+                    };
+
+                    $.ajax({
+
+                        type:'POST',
+
+                        url: '/webdataapi/event/getevents',
+
+                        dataType: 'json',
+
+                        data: evtObject,
+
+                        error: function (xhr, type, exception) { console.log("Error: " + exception); },
+
+                        success: function (data) {
+
+                            callback(data);
+
+                        }
+
+                    });                
+
+                },
+
+                eventClick: function(calEvent, jsEvent, view) {
+
+                    console.log('calEvent: ' + calEvent);
+
+                },
+
+                listView: {
+                    // text: 'list',
+                    click: function() {
+
+                    }
+                }
+
+
+            });
+
+
+            $('#submit_search input').on("click", function() {
+
+                gTitle = $('#event_title').val().replace(/\s+/g, '-');
+
+                gEventSearchStartFolderID = $('#eventSearchStartFolderID').val();
+
+                gEventTags = $('#eventTags').val();
+
+                gVirtualFolder = $('#virtualFolder').val();
+
+                gCategory = $('#limit_category').val();
+
+                gLocation = $('#limit_location').val();
+
+                var evtObject = {
+
+                    start   : $('#calendar').fullCalendar('getDate').format('L'),
+
+                    end     : $('#calendar').fullCalendar('getDate').endOf('month').format('L'),
+
+                    category    : gCategory,
+
+                    location    : gLocation,
+
+                    title: gTitle,
+
+                    eventSearchStartFolderID: gEventSearchStartFolderID,
+
+                    eventTags: gEventTags,
+
+                    virtualFolder: gVirtualFolder
+
+                };
+
+                $.ajax({
+
+                    type: "POST",
+
+                    url: '/webdataapi/event/getevents',
+
+                    data: evtObject  ,
+
+                    success: function(events) {
+
+                          $('#calendar').fullCalendar('removeEvents');
+
+                          $('#calendar').fullCalendar('addEventSource', events);  
+
+                          $('#calendar').fullCalendar('rerenderEvents' );
+
+                   }
+
+                });
+                
+            })
+
+
+            $(window).on("resize", onResize);
+
+            function onResize() {
+                
+                if( window.innerWidth > 991) {
+
+                     $("#calendar").fullCalendar('changeView', 'month');
+
+                } else {
+
+                    $("#calendar").fullCalendar('changeView', 'listMonth');
+
+                }
+
+            }            
+            
+        }
+
+    }
+
+    
+    module.exports = calendar || window.calendar;
+
+})(jQuery);
+},{}],3:[function(require,module,exports){
+(function () {
+
+    var carousel = {
+
+        init : function () {
+
+            if (DOMUtils.isUndefined(document.getElementsByClassName('carousel-content')[0])) return;
+            
+            console.log('init carousel');
+            
+             jQuery('.center').slick({
+                
+                    centerMode: false,
+
+                    infinite: false,
+
+                    centerPadding: '15px',
+
+                    initialSlide : 1,
+
+                    slidesToShow: 4,
+
+                    speed: 500,
+
+                    dots: true,
+
+                    mobileFirst: true,
+
+                    variableWidth: true,
+
+                    customPaging: function(slider, i) {
+
+                        return jQuery('<div class="slick-page" tabindex="0" />');
+
+                    },
+
+                    responsive: [{
+
+                        breakpoint: 992,
+
+                        settings: {
+
+                            arrows: false,
+
+                            centerMode: false,
+
+                            centerPadding: '15px',
+
+                            slidesToShow: 4
+
+                        }
+
+                    }, {
+
+                        breakpoint: 320,
+
+                        settings: {
+
+                            arrows: false,
+
+                            centerMode: true,
+
+                            centerPadding: '15px',
+
+                            slidesToShow: 1
+
+                        }
+
+                    }]
+
+                });   
+            
+        }
+
+    }
+
+    module.exports = carousel || window.carousel;
+
+})();
+},{}],4:[function(require,module,exports){
+(function () {
+
+	var documentNavigator = {
+
+		init : function () {
+
+			if (DOMUtils.isUndefined(document.getElementsByClassName('document-navigator')[0])) return;
+			
+			$('.document-navigator .collapse').on('show.bs.collapse', function (event) {
+				event.stopPropagation();
+				$(this).closest('.panel').addClass('expanded');
+			})
+			$('.document-navigator .collapse').on('hide.bs.collapse', function (event) {
+				event.stopPropagation();
+				$(this).closest('.panel').removeClass('expanded');
+			})
+
+		}
+
+	}
+
+	module.exports = documentNavigator || window.documentNavigator;
+
+})();
+},{}],5:[function(require,module,exports){
+(function () {
+
+    var header = {
+
+        initDesktop: function () {
+
+            if (DOMUtils.isUndefined(document.getElementsByClassName('header-container-desktop')[0])) return;
+
+            setPageModuleBackground('.left-ddl .dropdown-menu ul li a');
+
+            function setPageModuleBackground(element) {
+                var obj = $(element);
+                obj.css("background-image", "url(" + obj.attr('data-desktop-bg') + ")");
+            }
+            // End HeaderLeftNavigation.cshtml
+        },
+
+        initMobile: function () {
+
+            if (DOMUtils.isUndefined(document.getElementsByClassName('header-container-mobile')[0])) return;
+
+            $('.close-menu a').click(function () {
+                $('#navbar-collapse').collapse('hide');
+                $('.close-menu').hide();
+            });
+
+            $(".header-container-mobile .navigation-top .navbar-toggle").click(function () {
+                $(".close-menu").show();
+                $(".middle-section .navbar-nav").show();
+            });
+
+            var loadStatus = $('#somehiddenfield').val();
+            $('.header-search-submit').on('click', function () {
+                if (loadStatus === 'False') {
+                    return;
+                }
+                var $container = $(this).closest('.header-bottom-section');
+                var $hub = $container.find('.header-top-ddl');
+                var $search = $container.find('.search');
+                var $searchInput = $search.find('.CoveoSearchInterface .magic-box-input input');
+                var $suggestions = $search.find('.CoveoSearchInterface .magic-box-suggestions');
+                $container.addClass('search-focus-active');
+
+                $searchInput.focus();
+
+                $searchInput.focusout(function () {
+                    if ($suggestions != undefined && $suggestions.html() === "") {
+                        $container.removeClass('search-focus-active');
+                    }
+                });
+
+
+            });
+            var nagivation_custom = $(".navigation-tools");
+            var menu_toggle = $('.menu-toggle');
+            var close_custom = $('.close-menu');
+            var body_custom = $('body');
+
+            menu_toggle.on('click', function () {
+                nagivation_custom.css({ "display": "block" });
+                nagivation_custom.css({ "height": "100vh" });
+                nagivation_custom.css({ "top": "0" });
+                body_custom.css({ "overflow": "hidden" });
+            });
+
+            close_custom.on('click', function () {
+                nagivation_custom.css({ "display": "none" });
+                nagivation_custom.css({ "height": "0" });
+                nagivation_custom.css({ "top": "-100%" });
+                body_custom.css({ "overflow": "auto" });
+            });
+
+            $('.connect-link > a').unbind("click").on('click', function (e) {
+                e.stopPropagation();
+                var connect_link_state = $(".connect-link-2").css("display");
+                
+                if (connect_link_state === "none") {
+                    $('.connect-link-2').css({ "display": "block" });
+                }
+                else {
+                    $('.connect-link-2').css({ "display": "none" });
+                }
+               
+                //return false;
+            });
+            var top_search = $('.top-search-box-intranet');
+            var search_nav_desktop = $('.search-box-desktop');
+            var search_nav_mobile = $('.mobile-header-search');
+            var search_nav_static_desktop = $('.search-nav-desktop');
+            var search_nav_static_mobile = $('.search-nav-mobile');
+            var custom_utility_bar = $('.select-list-custom');
+            search_nav_desktop.on('click', function (e) {
+                e.stopPropagation();
+                search_nav_static_desktop.css({ "display": "none" });
+                custom_utility_bar.css({ "display": "none" });
+                top_search.css({ "transition": "all 500ms" });
+                top_search.css({ "opacity": "1" });
+                top_search.css({ "min-width": "450px" });
+
+                setTimeout(function () {
+                    var top_search = $('.top-search-box-intranet');
+                    top_search.find(".CoveoSearchbox input").focus();
+                }, 500);
+            });
+            search_nav_mobile.on('click', function (e) {
+                e.stopPropagation();
+                search_nav_static_mobile.css({ "display": "none" });
+                $('.nav-menu').css({ "display": "none" });
+                $('.select-list-custom').css({ "display": "none" });
+                top_search.css({ "transition": "all 500ms" });
+                top_search.css({ "opacity": "1" });
+                top_search.css({ "min-width": "300px" });
+                top_search.css({ "width": "90%" });
+
+            });
+            body_custom.on('click', function () {
+                var top_search_state = top_search.css("opacity");
+                if (top_search_state === "1") {
+                    top_search.css({ "transition": "none" });
+                    top_search.css({ "opacity": "0" });
+                    top_search.css({ "min-width": "30px" });
+                    search_nav_static_desktop.css({ "display": "block" });
+                    search_nav_static_mobile.css({ "display": "block" });
+                    $('.nav-menu').css({ "display": "block" });
+                    $('.select-list-custom').css({ "display": "block" });
+                    custom_utility_bar.css({ "display": "block" });
+
+                }
+
+            })
+        }
+
+    }
+
+    module.exports = header || window.header;
+
+})();
+},{}],6:[function(require,module,exports){
+(function () {
+
+	var heroCarousel = {
+
+		init: function () {
+
+			if (DOMUtils.isUndefined(document.getElementsByClassName('carousel')[0])) return;
+
+			var normalizeCaptionHeights = DOMUtils.debounce(function () {
+
+				if (window.innerWidth < 768) {
+
+                    //removing x y co-ordinates for banner overlay on mobile
+				    $(this).find('.carousel-inner .item .carousel-caption').removeAttr('style');
+
+					$('.carousel').each(function () {
+						var $captionSet = $(this).find('.carousel-inner .item .carousel-caption .panel-carousel').removeAttr('style');
+						setTimeout(function () {
+							DOMUtils.setEqualHeight($captionSet);
+						}, 250);
+					});
+				}
+
+			}, 250);
+			
+			normalizeCaptionHeights();
+
+			$(window).on("resize", normalizeCaptionHeights);
+
+			if ($('#container-carousel .carousel-inner .item').length == 1) {
+				$('.carousel-control, .carousel-indicators').hide();
+			}
+			
+		}
+
+	}
+
+	module.exports = heroCarousel || window.heroCarousel;
+
+})();
+},{}],7:[function(require,module,exports){
+(function () {
+
+    var imageModal = {
+        init: function () {
+
+            $(document).on("click", ".card-img-top", function () {
+
+                var $this = $(this);
+                var imageUrl = $(this).attr('src');
+                $this.parents(".flex-container").find('.modal-body img')[0].src = imageUrl;
+                $this.parents(".flex-container").find('.flex-modal').modal('show');
+            });
+
+            $(".flex-modal").on('hide.bs.modal', function (event) {
+                var modal = $(this);
+                modal.find('.modal-body img')[0].src = "";
+            });
+
+        }
+    }
+    module.exports = imageModal;
+
+})();
+},{}],8:[function(require,module,exports){
+(function () {
+
+	var leftNavigation = {
+
+		initMobile: function () {
+
+			if (DOMUtils.isUndefined(document.getElementsByClassName('left-nav-mobile-dropdown')[0])) return;
+			
+			$('.left-nav-mobile-dropdown a').on('change', function () {
+				var url = $(this).attr('href'); // get selected value
+				if (url) { // require a URL
+					window.location = url; // redirect
+				}
+				return false;
+			});
+
+		}
+
+	}
+
+	module.exports = leftNavigation || window.leftNavigation;
+
+})();
+},{}],9:[function(require,module,exports){
+(function () {
+
+	var relatedContent = {
+
+		init: function () {
+
+			if (DOMUtils.isUndefined(document.getElementsByClassName('related-content-tiles')[0])) return;
+
+			var settings = {
+				mobileFirst: true,
+				dots: true,
+				infinite: false,
+				speed: 300,
+				slidesToShow: 3,
+				slidesToScroll: 3,
+
+				responsive: [
+					{
+						breakpoint: 992, // desktop
+						settings: "unslick" // disables carousel above 992
+					},
+					{
+						breakpoint: 768, // tablet
+						settings: {
+							slidesToShow: 3,
+							slidesToScroll: 3
+						}
+					},
+					{
+						breakpoint: 0, // mobile
+						settings: {
+							arrows: false,
+							centerMode: true,
+							centerPadding: '30px',
+							slidesToShow: 1
+						}
+					}
+				]
+			};
+
+			// Re-enables carousel after being destroyed when going up to desktop and then back down to mobile
+			$('.related-content-tiles .slick-carousel').on('destroy', function (ev, slick) {
+				var carousel = $(this),
+				reinit = DOMUtils.debounce(function () {
+
+					if (slick.activeBreakpoint < window.innerWidth) {
+						return;
+					}
+
+					carousel.slick(slick.options); // Re-initialize with the old settings.
+
+					// Remove this event listener.
+					window.removeEventListener('resize', reinit);
+				}, 500);
+
+				window.addEventListener('resize', reinit);
+			}).slick(settings);
+
+			// Normalize heights of tile
+			var normalizeHeight = DOMUtils.debounce(function () {
+
+				$('.slick-carousel').each(function () {
+					var $tileSet = $(this).find('.tile').removeAttr('style');
+					setTimeout(function () {
+						DOMUtils.setEqualHeight($tileSet);
+					}, 250);
+					
+				});
+
+			}, 250);
+
+			normalizeHeight();
+
+			$(window).on("resize", normalizeHeight);
+
+		}
+	}
+
+	module.exports = relatedContent || window.relatedContent;
+
+})();
+},{}],10:[function(require,module,exports){
+(function () {
+
+	var rssFeed = {
+
+		init: function () {
+
+			if (DOMUtils.isUndefined(document.getElementsByClassName('rss-feed')[0])) return;
+
+			var $is_delete = 0;
+			var deleteRecord = function (autoGeneratedId) {
+				$.ajax({
+					type: "GET",
+					url: '/api/sitecore/RssFeed/DeleteTableRow/?autoGeneratedId=' + autoGeneratedId,
+					contentType: "application/json; charset=utf-8",
+					dataType: "json",
+					cache: false,
+					success: function (result) {
+						if (result == autoGeneratedId) {
+							$(".Latest-Feeds").show();
+							$is_delete = 1;
+						}
+					},
+					error: function () {
+						console.log("Result Error:");
+						$is_delete = false;
+					}
+				});
+			};
+
+			$(function () { // delete url
+				$(document).on("click", '.Latest-Feeds .delete-btn', function () {
+					var id = $(this).attr("data-key");
+					console.log("data-key: " + id);
+					deleteRecord(id);
+					var $this = $(this).parents(".Latest-Feeds").closest("div");
+					$this.remove();
+				});
+			});
+
+			var $editFeedsButton = $(".manage-feed-subheading");
+			$editFeedsButton.click(function () {
+				$(".manage-feeds-edit-model").show();
+				$(this).hide();
+			});
+
+			var $closeManageFeedButton = $('.manage-heading .close-btn');
+			$closeManageFeedButton.on('click', function () {
+				$('.manage-feeds-edit-model').hide();
+				$editFeedsButton.show();
+				location.reload();
+			});
+
+			var addRecord = function (userRssTable) {
+				var insertRow = new Object();
+				insertRow.RSSFeedUrl = userRssTable;
+				$.ajax({
+					type: "POST",
+					url: '/api/sitecore/RssFeed/AddTableRow',
+					contentType: "application/json; charset=utf-8",
+					data: JSON.stringify(insertRow),
+					dataType: "json",
+					cache: false,
+					success: function (data) {
+						if (data.length > 0) {
+							var latestFeedsDiv = "<div class='Latest-Feeds clearfix'><div class='feed-content col-sm-12'><div class='feeds-item'><a class='delete-btn clearfix' ><span class='fa fa-trash-o '></span></a></div><span class='feed-content-subheading'><a href=" + data + ">" + data + "</a></span></div></div>";
+							$(".manage-feeds-edit-model").append(latestFeedsDiv);
+							$("#textbox").val("");
+						}
+
+					},
+					error: function () {
+						console.log("error");
+					}
+				});
+			};
+
+			$(function () {
+				$(".add-feed-container .input-field .add-feed-btn").on("click", function () {
+					var txtBoxValue = $("#textbox").val();
+					addRecord(txtBoxValue);
+				});
+			});
+
+		}
+	}
+
+	module.exports = rssFeed || window.rssFeed;
+
+})();
+},{}],11:[function(require,module,exports){
+(function () {
+
+	var videoModal = {
+
+		init: function () {
+
+			if (DOMUtils.isUndefined(document.getElementsByClassName('video-modal')[0])) return;
+
+			$('.video-modal').on('hide.bs.modal', function () {
+
+				var $iframeVideos = $(this).find('.modal-body .media-video iframe');
+				if ($iframeVideos.length > 0) {
+					$iframeVideos.each(function () {
+						$(this).attr("src", $(this).attr("src"));
+					});
+				}
+
+				var $htmlVideos = $(this).find('video');
+				if ($htmlVideos.length > 0) {
+					$htmlVideos.each(function () {
+						$(this)[0].pause();
+					});
+				}
+				
+			});
+		}
+
+	}
+
+	module.exports = videoModal || window.videoModal;
+
+})();
+},{}],12:[function(require,module,exports){
+(function(window) {
+
+    'use strict';
+
+    var comparator = {
+
+        '<': function (a, b) { return a < b; },
+
+        '<=': function (a, b) { return a <= b; },
+
+        '>': function (a, b) { return a > b; },
+
+        '>=': function (a, b) { return a >= b; }
+
+    }    
+
+    window.DOMUtils = function(selector, context) {
+
+        return new DOMUtils.query(selector, context);
+
+    };
+
+    DOMUtils.extend = function() {
+
+        var target = this, key, count = 0;
+
+        if (arguments.length > 1) {
+
+            target = arguments[0];
+
+            count = 1;
+
+        }
+
+        for (count; count < arguments.length; count++) {
+
+            for (key in arguments[count]) {
+
+                if (arguments[count].hasOwnProperty(key)) {
+
+                    target[key] = arguments[count][key];
+
+                }
+
+            }
+
+        }
+
+        return target;
+    };
+
+    DOMUtils.extend({
+
+        ready: function(func) {
+
+            if (typeof func === 'function') {
+
+                window.addEventListener('load', func);
+
+            }
+
+        },
+
+        each: function(object, callback) {
+            
+            // Stop if no object or callback given.
+            if (!object || !callback) {
+
+                return false;
+
+            }
+
+            for (var i = 0; i < object.length; i++) {
+
+                callback.call(object[i], i);
+
+            }
+
+            return this;
+
+        },
+
+        query: function(selector, context) {
+
+            // If no context is given then use document.
+            context = context || document;
+
+            // Stop if no selector or blank selector found.
+            if (!selector || selector === "") {
+
+                return false;
+
+            }
+
+            // Return selector if is already a DOM instance.
+            if (selector instanceof DOMUtils) {
+
+                return selector;
+
+            }
+
+            // If the selector is a single node then return it.
+            if (selector.nodeType === 1 || selector.nodeType === 9) {
+
+                this[0] = selector;
+
+                this.length = 1;
+
+                return this;
+
+            }
+
+            [].push.apply(this, context.querySelectorAll(selector));
+
+            return this;
+
+        },
+
+        isNull: function (element) {
+
+            return element === null;
+
+        },
+
+        isUndefined: function (element) {
+
+            return element === void 0;
+
+        },
+
+        isElement: function (element) {
+
+            if (typeof HTMLElement === 'object') {
+
+                return element instanceof HTMLElement;
+
+            }
+
+            return element && typeof element === 'object' && element.nodeType === 1 && typeof element.nodeName === 'string';
+
+        },
+
+        isNode: function (node) {
+
+            if (typeof Node === 'object') {
+
+                return node instanceof Node;
+
+            }
+
+            return node && typeof node === 'object' && typeof node.nodeType === 'number' && typeof node.nodeName === 'string';
+
+        },
+
+        isObj: function (obj) {
+
+            return obj === Object(obj);
+
+        },
+
+        isNumber: function (num) {
+
+            return !isNaN(parseFloat(num)) && isFinite(num);
+
+        },
+
+        isFunction: function (value) {    // fallback check is for IE
+
+            return toString.call(value) === '[object Function]' || typeof value === 'function';
+
+        },
+
+
+        // Arithmetic checks
+        /* -------------------------------------------------------------------------- */
+        random: function () {
+
+            return Math.random();
+
+        },
+
+        // Array utils
+        /* -------------------------------------------------------------------------- */
+        is_arr: function (arr) {
+
+            return typeof (arr) == 'object' && (arr instanceof Array);
+
+        },
+
+        // Mobile device detection
+        /*--------------------------------------------------------------------------- */
+
+
+        compareVersion: function (version, range) {
+
+            var string = (range + '');
+
+            var n = +(string.match(/\d+/) || NaN);
+
+            var op = string.match(/^[<>]=?|/)[0];
+
+            return comparator[op] ? comparator[op](version, n) : (version == n || n !== n);
+
+        },
+
+        uAgent: function () {
+            return (navigator && navigator.userAgent || '').toLowerCase();
+        },
+
+        appVersion: function () {
+
+            return (navigator && navigator.appVersion || '').toLowerCase();
+
+        },
+
+        is_tablet: function () {
+
+            return  this.androidTablet() ||
+
+                    this.ipad() ||
+
+                    this.windowsTablet();
+        },
+
+        ipad : function(range) {
+
+            var match = this.uAgent().match(/ipad.+?os (\d+)/);
+
+            return match !== null && this.compareVersion(match[1], range);
+        
+        },       
+
+        androidTablet : function() {
+
+            return /android/.test(this.uAgent()) && !/mobile/.test(this.uAgent());
+        
+        },  
+
+        windowsTablet : function() {
+           
+            return this.windows() && !this.is_windowsPhone() && /touch/.test(this.uAgent());
+        
+        },      
+
+        is_tabletSize : function () {
+
+            return ((window.innerWidth >= 768) && (window.innerWidth < 1025)) ? true : false;
+
+        },      
+
+
+        is_mobile: function () {
+
+
+            return this.is_iphone() ||
+
+                   this.is_ipod() ||
+
+                   this.is_androidPhone() ||
+
+                   this.is_blackberry() ||
+
+                   this.is_windowsPhone() ||
+
+                   this.is_mobileSize();
+
+        },
+
+        is_iphone: function (range) {
+
+            var match = this.uAgent().match(/iphone(?:.+?os (\d+))?/);
+
+            return !!match && this.compareVersion(match[1] || 1, range);
+
+        },
+
+        is_ipod: function (range) {
+
+            var match = this.uAgent().match(/ipod.+?os (\d+)/);
+
+            return !!match && this.compareVersion(match[1], range);
+
+        },
+
+        is_androidPhone: function () {
+
+            return /android/.test(this.uAgent()) && /mobile/.test(this.uAgent());
+
+        },
+
+        is_blackberry: function () {
+
+            return /blackberry/.test(this.uAgent()) || /bb10/.test(this.uAgent());
+
+        },
+
+        windows: function () {
+
+            return /win/.test(this.appVersion());
+
+        },
+
+        is_windowsPhone: function () {
+
+            return this.windows() && /phone/.test(this.uAgent());
+
+        },
+
+        is_mobileSize: function () {
+
+            return (window.innerWidth) < 768 ? true : false;
+
+        },
+
+        // Array utils
+        /* ----------------------------------------------------------------------------- */
+
+        emptyArray: function (arr) {
+
+            for (var i = arr.length; i > 0; i--) {
+
+                arr.pop();
+
+            }
+
+            arr.length = 0;
+        },
+
+        shuffle: function (array) {
+
+            var arrLength = array.length;
+
+            for (var i = 0; i < arrLength; i++) {
+
+                var random = arrLength * this.random() | 0;
+
+                if (random == i) { continue; }
+
+                var newArrElement = array[random];
+
+                array[random] = array[i];
+
+                array[i] = newArrElement;
+
+            }
+
+            return array;
+        },
+
+        transformToArray: function (parameters) {
+
+            var params = {};
+
+            var arr = parameters.split("&");
+
+            for (var i = 0; i < arr.length; i++) {
+
+                var newArr = arr[i].split("=");
+
+                params[newArr[0]] = newArr[1];
+
+            }
+
+            return params;
+
+        },
+
+
+        // String utils
+        /* -------------------------------------------------------------------------- */
+        capitaliseFirst: function (string) {
+
+            return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+
+        },
+
+        capitaliseAllWords: function (str) {
+
+            str = str.toLocaleLowerCase();
+
+            var pieces = str.split(" ");
+
+            for (var i = 0; i < pieces.length; i++) {
+
+                var j = pieces[i].charAt(0).toUpperCase();
+
+                pieces[i] = j + pieces[i].substr(1);
+
+            }
+
+            return pieces.join(" ");
+
+        },
+
+        searchWord: function (word, string) {
+
+            word = word.toLowerCase();
+
+            string = string.toLowerCase();
+
+            var result = string.search(word);
+
+            if (result == -1)
+
+                return false;
+
+            else
+
+                return true;
+
+        },
+
+        stripCharacters : function(string) {
+
+            return string.replace(/\D/g,'');
+
+        },
+
+        // Timer utils
+        /* -------------------------------------------------------------------------- */
+
+        debounce: function (func, wait, immediate) {
+
+            var timeout;
+
+            return function () {
+
+                var context = this, args = arguments;
+
+                var later = function () {
+
+                    timeout = null;
+
+                    if (!immediate) func.apply(context, args);
+
+                };
+
+                var callNow = immediate && !timeout;
+                
+                clearTimeout(timeout);
+
+                timeout = setTimeout(later, wait);
+
+                if (callNow) func.apply(context, args);
+
+            };
+        },
+
+        throttle: function (delay, fn) {
+
+            var last, deferTimer;
+
+            return function () {
+
+                var context = this, args = arguments, now = +new Date;
+
+                if (last && now < last + delay) {
+
+                    clearTimeout(deferTimer);
+
+                    deferTimer = setTimeout(function () { last = now; fn.apply(context, args); }, delay);
+
+                }
+
+                else {
+
+                    last = now;
+
+                    fn.apply(context, args);
+
+                }
+            };
+        },
+
+
+        // URL utils
+        /* -------------------------------------------------------------------------- */
+
+        getURLInformation : function() {
+
+            var location = window.location;
+
+            return {
+
+                protocol : location.protocol,
+
+                host     : location.host,
+
+                hostname : location.hostname,
+
+                port     : location.port,
+
+                pathname : location.pathname
+
+            }
+
+        },
+
+        getParameterByName: function (name) {
+
+            var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+
+            return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+        },
+
+        getQueryParams: function (string) {
+
+            if (_.isEmpty(app.utils.getParameterByName(string))) return false;
+
+            return app.utils.getParameterByName(string);
+
+        },
+
+        getAllQueryParams: function () {
+
+            var string = window.location.search.substr(1);
+
+            return string != null && string != "" ? app.utils.transformToArray(string) : {};
+
+        },
+
+        vendor_prefix: function () {
+
+            var prefix;
+
+            var styles = window.getComputedStyle(document.documentElement, '');
+
+            prefix = (Array.prototype.slice.call(styles).join('').match(/-(moz|webkit|ms)-/) || (styles.OLink === '' && ['', 'o']))[1];
+
+            return prefix;
+        },
+
+        numberWithCommas : function(x) {
+
+            var parts = x.toString().split(".");
+
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            
+            return parts.join(".");
+
+        },
+
+        // Map utils
+        /* -------------------------------------------------------------------------- */
+
+        // defines the SVG paths
+        mapMarkerPath : function () {
+            return "M19.2,0C8.7,0,0.1,8.3,0,18.5c0,4.2,1.3,8,3.7,11.1l15,18.4l15.4-18.4c2.4-3.1,3.9-6.9,3.9-11.1C38.1,8.3,29.7,0,19.2,0z   M19,26.2c-4,0-7.2-3.2-7.2-7.2s3.2-7.2,7.2-7.2s7.2,3.2,7.2,7.2S23,26.2,19,26.2z";
+        },
+
+        //Sytles the look for the new map marker
+        newMarkerImage: function () {
+            var mapMarkerPath = DOMUtils.mapMarkerPath();
+            return {
+
+                path: mapMarkerPath,
+
+                fillColor: '#024',
+
+                fillOpacity: 1,
+
+                strokeColor: '#fff',
+
+                strokeWeight: 2,
+
+                scale: 0.75,
+
+                anchor: new google.maps.Point(19, 47)
+            };
+        },
+
+        //Sytles the look for the hover state for new map marker
+        markerImageHover: function () {
+            var mapMarkerPath = DOMUtils.mapMarkerPath();
+            return {
+
+                path: mapMarkerPath,
+
+                fillColor: "#FF6600",
+
+                fillOpacity: 1,
+
+                strokeColor: '',
+
+                strokeWeight: 0,
+
+                scale: 0.75,
+
+                anchor: new google.maps.Point(19, 47)
+            };
+        },
+
+        //Scroll to an id from hash but offset by the height of the fixed seach bar
+        scrollPageToId: function () {
+            var scrollId = DOMUtils.getParameterByName("scrollLoc");
+            var scrollElem = $("#" + scrollId);
+            if (scrollId != null && scrollElem.length) {
+                var searchHeight = $(".sticky-header").height() + 20;
+                var scrollLocation = scrollElem.offset().top - searchHeight;
+                setTimeout(function () {
+                    TweenMax.to(window, 1, { scrollTo: { y: scrollLocation, x: 0 } });
+                }, 1000)
+                
+            }
+        },
+
+        fitToPlaceholder: function (id) {
+            var $control = $("#"+id);
+
+            var pxPerLetter = 7;
+            var fullTextLength = ($control.attr('data-value-large').length + 1);
+            var placholderWidth = fullTextLength * pxPerLetter;
+            var controlWidth = $control.width();
+
+            var attr = (placholderWidth < controlWidth) ? 'data-value-large' : 'data-value-small';
+            var placeholderText = $control.attr(attr);
+            $control.attr('placeholder', placeholderText);            
+        },
+
+    	// Reuseable functions
+
+        setEqualHeight: function (column) {
+        	var maxHeight = 0;
+        	var $column = $(column);
+        	$column.height('auto');
+
+        	for (var i = 0; i < $column.length; i++) {
+
+        		var $elem = $column.eq(i);
+        		if ($elem.height() > maxHeight) {
+        			maxHeight = $elem.height();
+        		}
+        	}
+
+        	$column.height(maxHeight);
+        }
+
+    });
+
+    DOMUtils.query.prototype = DOMUtils.prototype;    
+
+    module.exports = window.DOMUtils;
+
+})(window);
+   
+},{}]},{},[1]);

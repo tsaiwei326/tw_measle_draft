@@ -1,0 +1,180 @@
+peopleconnectApp.factory('ToolsService', ['$q', '$rootScope', 'ToolsApi', function ($q, $rootScope, ToolsApi) {
+    var _toolService = {}
+    var root = $rootScope;
+    // create singleton
+    //
+    root._myTools = [];
+
+    
+    
+    _toolService.renameToolGroup = function ( data ) {
+        var defer = $q.defer();
+
+        ToolsApi.GET_renameGroup(data).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+        
+        return defer.promise;
+    }
+
+    _toolService.saveOrder = function (params, tools_arr) {
+        var defer = $q.defer();
+
+        ToolsApi.POST_saveReorder(params, tools_arr).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+    _toolService.getToolCategories = function (params) {
+        var defer = $q.defer();
+
+        ToolsApi.GET_toolCategories(params).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+    
+
+
+    _toolService.getAllTools = function (data) {
+        var defer = $q.defer();
+
+        ToolsApi.GET_alltools(data).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+        
+        return defer.promise;
+    }
+
+    _toolService.deleteTool = function (data) {
+        var defer = $q.defer();
+
+        ToolsApi.DELETE_tool(data).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+
+    _toolService.deleteToolFromGroup = function (data) {
+        var defer = $q.defer();
+
+        ToolsApi.DELETE_toolGroup(data).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+
+    
+    /*
+    * @returns Promise
+    **/
+    _toolService.getMyTools = function (data) {
+        var defer = $q.defer();
+
+        if (root._myTools.length > 0) {
+            defer.resolve(root._myTools);
+        } else {
+            // console.log(' fetching all my tools');
+            ToolsApi.GET_mytools(data).then(function (response) {
+                root._myTools = response.data;
+                defer.resolve(root._myTools);
+            }).catch(function (response) {
+                defer.reject(response)
+            });
+        }
+
+        return defer.promise;
+    }
+
+    /*
+    * @returns Promise
+    */
+    _toolService.saveToolsToUser = function (toolsArr, params) {
+        var defer = $q.defer();
+        ToolsApi.POST_savetools(toolsArr, params).then(function (response) {
+            
+            defer.resolve(response);
+            // root._myTools
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+
+    _toolService.requestTool = function (params, data) {
+
+
+        var defer = $q.defer();
+        ToolsApi.POST_requestTool(params, data).then(function (response) {
+            
+            defer.resolve(response);
+            // root._myTools     }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+
+    /*
+    * @returns Promise
+    **/
+    _toolService.saveGroup = function (data) {
+        var defer = $q.defer();
+
+        ToolsApi.POST_saveGroup(data).then(function (response) {
+            
+            defer.resolve(response);
+            // root._myTools
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+    /*
+    * @returns Promise
+    **/
+    _toolService.saveToolsToGroup = function (params, tools_arr) {
+        
+        var defer = $q.defer();
+
+        ToolsApi.POST_saveToolsToGroup(params, tools_arr).then(function (response) {
+            defer.resolve(response);
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+
+
+    //saveToolsToGroup
+
+
+
+    return _toolService;
+}]);

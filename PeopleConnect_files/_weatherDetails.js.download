@@ -1,0 +1,167 @@
+﻿
+// WOEIDs:
+// Charlotte, NC: 2378426
+// Atlanta: 2357024
+
+// Function to retrieve coordinates based on user's geolocation
+function getLocationByLatLong() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(success, error);
+    } else {
+        console.error("Geolocation is not supported by this browser.");
+        useDefaultZipCode();
+    }
+
+    function success(position) {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        const coordinates = `${latitude},${longitude}`;
+        getWeatherByLatLong(coordinates);
+    }
+
+    function error() {
+        //$('#weatherLocation').text('Unable to retrieve your location.');
+        useDefaultZipCode();
+    }
+}
+
+function useDefaultZipCode() {
+    const defaultZipCode = "28205";
+    getWeather(defaultZipCode);
+}
+
+function setCookie(name, value, days) {
+    var date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000)); // Set expiration date in milliseconds
+    var expires = "expires=" + date.toUTCString();
+    document.cookie = name + "=" + value + ";" + expires + ";path=/"; // Set cookie with name, value, and expiry date
+}
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var cookie = document.cookie.split(';').find(c => c.trim().startsWith(nameEQ));
+    return cookie ? cookie.substring(nameEQ.length).trim() : null;
+}
+var getWeatherByLatLong = function (latLongValue) {
+    // Combine latitude and longitude into a single parameter
+    var latLong = latLongValue;
+
+    $.ajax({
+        type: "GET",
+        url: '/chs-api/dashboard/GetWeatherByLatLong?latLong=' + latLong,
+        success: function (result) {
+            if (result !== null && result !== undefined) {
+                $('#weatherImg').attr("src", result.WeatherIconUrl);
+                $('#weatherLocation').html(result.Location);
+                $('#weatherTemperature').html(result.Temperature + "&deg;" + "<span>F</span>");
+                $('.weather-widget').show();
+
+                $('#weatherZipInput').hide();
+                $('.weather-edit').show();
+
+                $('#weatherImgMobile').attr("src", result.WeatherIconUrl);
+                $('#weatherLocationMobile').html(result.Location);
+                $('#weatherTemperatureMobile').html(result.Temperature + "&deg;" + "<span>F</span>");
+                $('.weather-widget').show();
+
+                $('#weatherZipInputMobile').hide();
+                $('.weather-edit').show();
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log('get weather failed');
+        }
+    });
+};
+
+$('.weather-edit, .weather-location').click(function () {
+    $('#weatherLocation').empty();
+    $(this).hide();
+    $('.weather-location-input').css('display', 'inline-flex');
+});
+
+$('#weatherZipInput').submit(function () {
+    var zip = $(this).find('.weather-zip-input').val();
+    setCookie("weatherZip", zip, 365);
+    getWeather(zip);
+    SaveLocationDetail(zip);
+    $('.weather-location').show();
+    return false;
+});
+
+$("#weatherZipInputMobile").submit(function () {
+    var zip = $(this).find('.weather-zip-input').val();
+    setCookie("weatherZip", zip, 365);
+    console.log(zip);
+    getWeather(zip);
+    SaveLocationDetail(zip);
+    $('.weather-location').show();
+
+    return false;
+});
+
+var getWeather = function (zipCode) {
+    $.ajax({
+        type: "GET",
+        url: '/chs-api/dashboard/GetWeatherByZip?zipCode=' + zipCode,
+        success: function (result) {
+            if (result !== null && result !== undefined) {
+                $('#weatherImg').attr("src", result.WeatherIconUrl);
+                $('#weatherLocation').html(result.Location);
+                $('#weatherTemperature').html(result.Temperature + "&deg;" + "<span>F</span>");
+                $('.weather-widget').show();
+
+                $('#weatherZipInput').hide();
+                $('.weather-edit').show();
+
+                $('#weatherImgMobile').attr("src", result.WeatherIconUrl);
+                $('#weatherLocationMobile').html(result.Location);
+                $('#weatherTemperatureMobile').html(result.Temperature + "&deg;" + "<span>F</span>");
+                $('.weather-widget').show();
+
+                $('#weatherZipInputMobile').hide();
+                $('.weather-edit').show();
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log('get weather failed');
+        }
+    });
+};
+
+var populateWeatherWidget = function () {
+    var userID = $('#_hiddenuserid').val();
+    var locationZipCode = $('#weatherwidget_zipcode').val();
+    var weatherZipFromCookie = getCookie("weatherZip");
+
+    if (weatherZipFromCookie) {
+        // If cookie is present, use its value for fetching the weather
+        getWeather(weatherZipFromCookie);
+    }
+    else if (locationZipCode) {
+        getWeather(locationZipCode);
+    } else {
+        getLocationByLatLong();
+    }
+};
+
+$(document).ready(function () {
+    console.log("Weather Document is ready.");
+    populateWeatherWidget();
+});
+
+function SaveLocationDetail(zipCode) {
+    var userID = $('#_hiddenuserid').val();
+    var sitecoreEndpoint = '/chs-api/dashboard/AddUserLocation?userId=' + userID + '&zipCode=' + zipCode;
+    $.ajax({
+        type: "POST",
+        url: sitecoreEndpoint,
+        success: function (result) {
+            if (result !== null && result !== undefined) {
+                // Do nothing
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log('Error in saving user location.');
+        }
+    });
+}

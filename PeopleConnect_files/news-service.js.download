@@ -1,0 +1,76 @@
+﻿peopleconnectApp.factory('NewsService', ['$q', '$rootScope', 'NewsApi', function ($q, $rootScope, NewsApi) {
+    var _newsService = {}
+    var root = $rootScope;
+    // create singleton
+    root._feed = [];
+
+    _newsService.getNews = function (params) {
+        var defer = $q.defer();
+
+        NewsApi.GET_feed(params).then(function (response) {
+
+            let newsList = response.data;
+
+            defer.resolve(newsList)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+
+    
+    _newsService.getAllCategories = function () {
+        //
+        var defer = $q.defer();
+        NewsApi.GET_categories().then(function (response) {
+            let categoryList = response.data;
+            defer.resolve(categoryList)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+    _newsService.getAllTopics = function () {
+        //
+        var defer = $q.defer();
+        NewsApi.GET_topics().then(function (response) {
+            let topicList = response.data;
+            defer.resolve(topicList)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+
+    _newsService.getMyFilters = function (params) {  
+        var defer = $q.defer();
+        NewsApi.GET_myfilters(params).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+    _newsService.saveFilters = function (params, filters ) {
+        var defer = $q.defer();
+
+        NewsApi.POST_saveFilters(params, filters).then(function (response) {
+            defer.resolve(response)
+        }).catch(function (response) {
+            defer.reject(response)
+        });
+
+        return defer.promise;
+    }
+
+
+    return _newsService;
+}]);
